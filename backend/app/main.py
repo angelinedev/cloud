@@ -6,8 +6,10 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # -----------------------------------------------
 
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 # Import passlib directly to guarantee we have a working hasher
 from passlib.context import CryptContext
@@ -29,6 +31,18 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- DEBUGGING: Log Validation Errors to Vercel Console ---
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # This prints the exact missing field to your Vercel logs
+    error_details = exc.errors()
+    print(f"❌ VALIDATION ERROR on {request.url}: {error_details}")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": error_details},
+    )
+# ----------------------------------------------------------
 
 # Include Routers
 for router in (auth.router, accounts.router, policies.router, dashboard.router, notifications.router):
