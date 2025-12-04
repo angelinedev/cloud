@@ -3330,6 +3330,7 @@ width: 40px;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+  overflow-x: hidden;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   /* When sidebar is open, shift the main content */
