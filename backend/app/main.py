@@ -94,16 +94,13 @@ def create_admin_user(db: Session):
 def seed_demo_data(db: Session):
     """Seed demo data from seed.py"""
     try:
-        from app.models import User
+        from app.models import User, CloudAccount
+        
         # Check if demo data already exists
-        existing_user = db.query(User).filter(User.email == "admin@cloudguard.dev").first()
-        if existing_user:
-            # Check if we have demo accounts already
-            from app.models import CloudAccount
-            account_count = db.query(CloudAccount).count()
-            if account_count > 0:
-                print("ℹ️  Demo data already seeded.")
-                return
+        account_count = db.query(CloudAccount).count()
+        if account_count > 0:
+            print("ℹ️  Demo data already seeded.")
+            return
         
         print("🌱 Seeding demo data...")
         
@@ -113,6 +110,12 @@ def seed_demo_data(db: Session):
         for record in records:
             model = record["model"]
             data = record["data"]
+            
+            # Skip user creation if it's the admin user (already created by create_admin_user)
+            if model == User and data.get("email") == "admin@cloudguard.dev":
+                print("ℹ️  Skipping admin user (already exists)")
+                continue
+            
             instance = model(**data)
             db.add(instance)
         
