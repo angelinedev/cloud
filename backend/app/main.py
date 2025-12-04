@@ -60,7 +60,8 @@ def create_admin_user(db: Session):
                     password="changeme123", 
                     full_name="Admin User"
                 )
-                crud.create_user(db, user_in)
+                # FIX: Pass the password hasher function as required by crud.create_user
+                crud.create_user(db, user_in, PasswordManager.hash)
             except AttributeError:
                 # Fallback if schemas/crud names differ
                 hashed_pw = PasswordManager.hash("changeme123")
