@@ -9,6 +9,8 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+# Import passlib directly to guarantee we have a working hasher
+from passlib.context import CryptContext
 
 # Imports
 from app.config import settings
@@ -53,6 +55,11 @@ def create_admin_user(db: Session):
         
         if not user:
             print(f"Creating admin user: {admin_email}")
+            
+            # ROBUST FIX: Create a local hasher context.
+            # This avoids "missing argument" errors caused by passing Unbound class methods.
+            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
             # Create the user. We try to use the schema if possible, or fallback to model
             try:
                 user_in = schemas.UserCreate(
@@ -60,11 +67,11 @@ def create_admin_user(db: Session):
                     password="changeme123", 
                     full_name="Admin User"
                 )
-                # FIX: Pass the password hasher function as required by crud.create_user
-                crud.create_user(db, user_in, PasswordManager.hash)
+                # Pass the bound pwd_context.hash method which accepts 1 argument (the password)
+                crud.create_user(db, user_in, pwd_context.hash)
             except AttributeError:
                 # Fallback if schemas/crud names differ
-                hashed_pw = PasswordManager.hash("changeme123")
+                hashed_pw = pwd_context.hash("changeme123")
                 new_user = User(email=admin_email, hashed_password=hashed_pw, full_name="Admin User", is_active=True)
                 db.add(new_user)
                 db.commit()
