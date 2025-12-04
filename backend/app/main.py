@@ -11,15 +11,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-# Import passlib directly to guarantee we have a working hasher
 from passlib.context import CryptContext
 
 # Imports
 from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.routers import accounts, auth, dashboard, notifications, policies
-from app import crud, schemas  # We need these to create the user
-from app.security import PasswordManager # To hash the password manually if needed
+from app import crud, schemas
+from app.security import PasswordManager
+
+# ============ DEMO SEED IMPORT - REMOVE THIS LINE FOR PRODUCTION ============
+from app.seed import demo_records
+# ============================================================================
 
 app = FastAPI(title=settings.app_name)
 
@@ -35,7 +38,6 @@ app.add_middleware(
 # --- DEBUGGING: Log Validation Errors to Vercel Console ---
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
-    # This prints the exact missing field to your Vercel logs
     error_details = exc.errors()
     print(f"❌ VALIDATION ERROR on {request.url}: {error_details}")
     return JSONResponse(
@@ -62,38 +64,65 @@ def create_admin_user(db: Session):
     """Helper to ensure admin exists."""
     try:
         admin_email = "admin@cloudguard.dev"
-        # Check if user exists (Assuming a get_user_by_email function exists in crud)
-        # If crud is complex, we can do a direct query to be safe:
         from app.models import User
         user = db.query(User).filter(User.email == admin_email).first()
         
         if not user:
             print(f"Creating admin user: {admin_email}")
             
-            # ROBUST FIX: Create a local hasher context.
-            # This avoids "missing argument" errors caused by passing Unbound class methods.
             pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-            # Create the user. We try to use the schema if possible, or fallback to model
             try:
                 user_in = schemas.UserCreate(
                     email=admin_email, 
                     password="changeme123", 
-                    full_name="Admin User"
+                    full_name="Cloud Guard Admin"
                 )
-                # Pass the bound pwd_context.hash method which accepts 1 argument (the password)
                 crud.create_user(db, user_in, pwd_context.hash)
             except AttributeError:
-                # Fallback if schemas/crud names differ
                 hashed_pw = pwd_context.hash("changeme123")
-                new_user = User(email=admin_email, hashed_password=hashed_pw, full_name="Admin User", is_active=True)
+                new_user = User(email=admin_email, hashed_password=hashed_pw, full_name="Cloud Guard Admin", is_active=True)
                 db.add(new_user)
                 db.commit()
-            print("Admin user created successfully.")
+            print("✅ Admin user created successfully.")
         else:
-            print("Admin user already exists.")
+            print("ℹ️  Admin user already exists.")
     except Exception as e:
-        print(f"Error creating admin user: {e}")
+        print(f"❌ Error creating admin user: {e}")
+
+# ============ DEMO SEED FUNCTION - REMOVE THIS FUNCTION FOR PRODUCTION ============
+def seed_demo_data(db: Session):
+    """Seed demo data from seed.py"""
+    try:
+        from app.models import User
+        # Check if demo data already exists
+        existing_user = db.query(User).filter(User.email == "admin@cloudguard.dev").first()
+        if existing_user:
+            # Check if we have demo accounts already
+            from app.models import CloudAccount
+            account_count = db.query(CloudAccount).count()
+            if account_count > 0:
+                print("ℹ️  Demo data already seeded.")
+                return
+        
+        print("🌱 Seeding demo data...")
+        
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        records = demo_records(password_hasher=pwd_context.hash)
+        
+        for record in records:
+            model = record["model"]
+            data = record["data"]
+            instance = model(**data)
+            db.add(instance)
+        
+        db.commit()
+        print("✅ Demo data seeded successfully!")
+        
+    except Exception as e:
+        print(f"❌ Error seeding demo data: {e}")
+        db.rollback()
+# ===================================================================================
 
 @app.on_event("startup")
 def on_startup() -> None:
@@ -101,16 +130,21 @@ def on_startup() -> None:
         try:
             # 1. Create Tables
             Base.metadata.create_all(bind=engine)
-            print("Database tables created.")
+            print("📊 Database tables created.")
 
-            # 2. Seed Admin User
+            # 2. Create Admin User (if not exists)
             db = SessionLocal()
             try:
                 create_admin_user(db)
+                
+                # ============ DEMO SEED - REMOVE THESE 2 LINES FOR PRODUCTION ============
+                seed_demo_data(db)
+                # ==========================================================================
+                
             finally:
                 db.close()
 
         except Exception as e:
-            print(f"Warning: Database initialization error: {e}")
+            print(f"⚠️  Warning: Database initialization error: {e}")
     else:
-        print("Skipping database initialization (Build mode)")
+        print("⏭️  Skipping database initialization (Build mode)")

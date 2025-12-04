@@ -163,9 +163,3 @@ def demo_records(*, password_hasher) -> list[dict]:
     ]
 
     return records
-
-
-
-
-
-
