@@ -152,12 +152,16 @@ def seed_demo_data(db: Session):
         db.commit()
         print(f"✅ Created {len(created_policies)} policies")
         
+        # Map old IDs to new IDs
+        policy_id_map = {i+1: policy.id for i, policy in enumerate(created_policies)}
+        account_id_map = {i+1: account.id for i, account in enumerate(created_accounts)}
+        
         print(f"🔍 Creating {len(evaluations)} policy evaluations...")
         for data in evaluations:
-            # Use the actual IDs from created records
+            # Replace hardcoded IDs with actual IDs
             eval_data = data.copy()
-            # The policy_id and account_id in seed data are 1-indexed, but we need actual IDs
-            # Since we just created them in order, the IDs should match
+            eval_data['policy_id'] = policy_id_map[data['policy_id']]
+            eval_data['account_id'] = account_id_map[data['account_id']]
             instance = PolicyEvaluation(**eval_data)
             db.add(instance)
         db.commit()
