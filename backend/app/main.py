@@ -98,11 +98,25 @@ def seed_demo_data(db: Session):
         
         # Check if demo data already exists
         account_count = db.query(CloudAccount).count()
-        if account_count > 0:
+        policy_count = db.query(Policy).count()
+        eval_count = db.query(PolicyEvaluation).count()
+        notif_count = db.query(Notification).count()
+        
+        if account_count > 0 and policy_count > 0 and eval_count > 0 and notif_count > 0:
             print("ℹ️  Demo data already seeded.")
             return
         
         print("🌱 Seeding demo data...")
+        
+        # If there's partial data, clean it up first
+        if account_count > 0 or policy_count > 0 or eval_count > 0 or notif_count > 0:
+            print("⚠️  Partial data detected. Cleaning up...")
+            db.query(PolicyEvaluation).delete()
+            db.query(Notification).delete()
+            db.query(Policy).delete()
+            db.query(CloudAccount).delete()
+            db.commit()
+            print("✅ Cleanup complete")
         
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         records = demo_records(password_hasher=pwd_context.hash)
@@ -142,6 +156,7 @@ def seed_demo_data(db: Session):
             instance = CloudAccount(**data)
             db.add(instance)
         db.commit()
+        db.flush()  # Ensure IDs are assigned
         print("✅ Cloud accounts created")
         
         # 3. Policies
@@ -149,6 +164,7 @@ def seed_demo_data(db: Session):
             instance = Policy(**data)
             db.add(instance)
         db.commit()
+        db.flush()  # Ensure IDs are assigned
         print("✅ Policies created")
         
         # 4. Policy Evaluations (requires accounts and policies to exist)
@@ -169,8 +185,9 @@ def seed_demo_data(db: Session):
         
     except Exception as e:
         print(f"❌ Error seeding demo data: {e}")
+        print(f"💡 Hint: Try dropping and recreating your database tables")
         db.rollback()
-# =========================================================================================================
+# ===================================================================================
 
 @app.on_event("startup")
 def on_startup() -> None:
