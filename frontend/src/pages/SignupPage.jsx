@@ -40,7 +40,7 @@ export default function SignupPage() {
       return;
     }
     // Note: We keep this client-side check loose (6 chars) so the server can enforce strict rules (8 chars)
-    if (formState.password.trim().length < 6) {
+    if (formState.password.trim().length < 8) {
       setErrorMessage("Use a password with at least 8 characters.");
       return;
     }
@@ -150,7 +150,7 @@ export default function SignupPage() {
                   value={formState.password}
                   onChange={handleChange("password")}
                   required
-                  minLength={6}
+                  minLength={8}
                 />
                 <button
                   type="button"
