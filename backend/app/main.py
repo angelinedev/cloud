@@ -1,68 +1,56 @@
-from __future__ import annotations
+import sys
+import os
 
-from contextlib import contextmanager
+# --- MAGIC FIX: Add parent directory to path ---
+# This allows 'from app import ...' to work without changing all your code
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# -----------------------------------------------
 
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import crud
+# These imports will now work because of the fix above
 from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.routers import accounts, auth, dashboard, notifications, policies
-from app.security import PasswordManager
-from app.seed import demo_records
+
+# Note: We don't import seed/crud here to avoid circular dependency issues on startup 
+# unless strictly necessary, but the path fix makes them available if needed.
 
 app = FastAPI(title=settings.app_name)
 
+# Allow CORS for your frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=["*"], # Allow all for now to fix 405/CORS issues
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Include all your routers
 for router in (auth.router, accounts.router, policies.router, dashboard.router, notifications.router):
     app.include_router(router)
 
+# Setup API router prefix
 api_router = APIRouter(prefix="/api")
 for router in (auth.router, accounts.router, policies.router, dashboard.router, notifications.router):
     api_router.include_router(router)
 app.include_router(api_router)
 
-
 @app.get("/health")
 def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
 
-
 @app.on_event("startup")
 def on_startup() -> None:
-    # CRITICAL MODIFICATION: Only attempt database operations if a valid URL is provided.
-    # This prevents deployment crash on Vercel/Serverless where the DB is remote.
+    # This prevents the app from crashing during the build phase if DB isn't ready
     if settings.database_url and not settings.database_url.startswith('sqlite'):
         try:
-            print("Attempting database initialization...")
-            # This line attempts to create tables/connect
+            # Create tables only if we have a real database connection
             Base.metadata.create_all(bind=engine)
-            
-            if settings.demo_seed:
-                 # Ensure crud and password manager imports are correctly handled here
-                 # If seeding fails without connection, this should be skipped too
-                 print("Attempting to seed demo data...")
-                 # ... crud.seed_demo_data(...)
+            print("Database tables created.")
         except Exception as e:
-            # The app won't crash on startup if the DB connection fails.
-            print(f"WARNING: Database initialization skipped due to error or missing URL: {e}")
-            # Ensure the app can still run without database access for frontend display purposes.
-            pass
+            print(f"Warning: Database initialization skipped: {e}")
     else:
-        print("INFO: Skipping database initialization (Local SQLite/URL missing).")
-
-@contextmanager
-def session_scope():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+        print("Skipping database initialization (SQLite/Build mode)")
