@@ -66,9 +66,7 @@ export default function SignupPage() {
     <div className="auth-layout auth-layout--split auth-layout--reverse">
       <section className="auth-panel">
         <div className="auth-brand">
-          <div className="auth-brand-icon">
-            🛡️
-          </div>
+
           <div className="auth-brand-text">
             <strong>Cloud Guard</strong>
             <span>Provision multi-cloud guardrails in minutes</span>
