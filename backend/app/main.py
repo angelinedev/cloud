@@ -203,3 +203,27 @@ def on_startup() -> None:
             print(f"⚠️  Warning: Database initialization error: {e}")
     else:
         print("⏭️  Skipping database initialization (Build mode)")
+
+@app.get("/debug/counts")
+def debug_counts():
+    """Debug endpoint to check database counts"""
+    db = SessionLocal()
+    try:
+        from app.models import User, CloudAccount, Policy, PolicyEvaluation, Notification
+        
+        users = db.query(User).all()
+        accounts = db.query(CloudAccount).all()
+        policies = db.query(Policy).all()
+        
+        return {
+            "users_count": len(users),
+            "users": [{"id": u.id, "email": u.email, "full_name": u.full_name} for u in users],
+            "accounts_count": len(accounts),
+            "accounts": [{"id": a.id, "provider": a.provider, "display_name": a.display_name} for a in accounts],
+            "policies_count": len(policies),
+            "policies": [{"id": p.id, "name": p.name, "provider": p.provider} for p in policies],
+            "evaluations_count": db.query(PolicyEvaluation).count(),
+            "notifications_count": db.query(Notification).count(),
+        }
+    finally:
+        db.close()
