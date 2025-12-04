@@ -4,17 +4,12 @@
     {
       "src": "backend/app/main.py",
       "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "15mb",
-        "runtime": "python3.9"
-      }
+      "config": { "maxLambdaSize": "15mb", "runtime": "python3.9" }
     },
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": {
-        "outputDirectory": "dist"
-      }
+      "config": { "outputDirectory": "dist" }
     }
   ],
   "routes": [
@@ -27,8 +22,12 @@
       "dest": "backend/app/main.py"
     },
     {
+      "src": "/assets/(.*)",
+      "dest": "/frontend/assets/$1"
+    },
+    {
       "src": "/(.*)",
-      "dest": "frontend/dist/$1"
+      "dest": "/frontend/index.html"
     }
   ]
 }
