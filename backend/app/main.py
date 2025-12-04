@@ -94,7 +94,7 @@ def create_admin_user(db: Session):
 def seed_demo_data(db: Session):
     """Seed demo data from seed.py"""
     try:
-        from app.models import User, CloudAccount
+        from app.models import User, CloudAccount, Policy, PolicyEvaluation, Notification
         
         # Check if demo data already exists
         account_count = db.query(CloudAccount).count()
@@ -107,6 +107,13 @@ def seed_demo_data(db: Session):
         pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         records = demo_records(password_hasher=pwd_context.hash)
         
+        # Group records by model type to maintain order
+        users = []
+        accounts = []
+        policies = []
+        evaluations = []
+        notifications = []
+        
         for record in records:
             model = record["model"]
             data = record["data"]
@@ -116,16 +123,54 @@ def seed_demo_data(db: Session):
                 print("ℹ️  Skipping admin user (already exists)")
                 continue
             
-            instance = model(**data)
-            db.add(instance)
+            if model == User:
+                users.append(data)
+            elif model == CloudAccount:
+                accounts.append(data)
+            elif model == Policy:
+                policies.append(data)
+            elif model == PolicyEvaluation:
+                evaluations.append(data)
+            elif model == Notification:
+                notifications.append(data)
         
+        # Insert in correct order to satisfy foreign keys
+        # 1. Users (already created by create_admin_user, so skip)
+        
+        # 2. Cloud Accounts
+        for data in accounts:
+            instance = CloudAccount(**data)
+            db.add(instance)
         db.commit()
+        print("✅ Cloud accounts created")
+        
+        # 3. Policies
+        for data in policies:
+            instance = Policy(**data)
+            db.add(instance)
+        db.commit()
+        print("✅ Policies created")
+        
+        # 4. Policy Evaluations (requires accounts and policies to exist)
+        for data in evaluations:
+            instance = PolicyEvaluation(**data)
+            db.add(instance)
+        db.commit()
+        print("✅ Policy evaluations created")
+        
+        # 5. Notifications
+        for data in notifications:
+            instance = Notification(**data)
+            db.add(instance)
+        db.commit()
+        print("✅ Notifications created")
+        
         print("✅ Demo data seeded successfully!")
         
     except Exception as e:
         print(f"❌ Error seeding demo data: {e}")
         db.rollback()
-# ===================================================================================
+# =========================================================================================================
 
 @app.on_event("startup")
 def on_startup() -> None:
