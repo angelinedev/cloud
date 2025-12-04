@@ -2839,22 +2839,21 @@ textarea.form__input:focus {
 
 
 }
-
-
-
-
-
-
-
+aside[class*="auth-visual"] {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 .auth-visual__content {
 
 
 
-  position: relative;
-
+  position: relative;    
+  justify-content: center;
 
 
   z-index: 1;
+  height: 100%;
 
 
 
@@ -2871,11 +2870,7 @@ textarea.form__input:focus {
 
 
   gap: 22px;
-
-
-
-  align-items: flex-start;
-
+  align-items: center;
 
 
   text-align: left;
@@ -2894,7 +2889,7 @@ textarea.form__input:focus {
 
 
 
-  font-size: 0.78rem;
+  font-size: 1rem;
 
 
 
@@ -2926,7 +2921,7 @@ textarea.form__input:focus {
 
 
 
-  font-size: clamp(2.2rem, 2.4vw + 1rem, 2.8rem);
+  font-size: clamp(2.5rem, 2.4vw + 1rem, 2.8rem);
 
 
 
@@ -2954,12 +2949,13 @@ textarea.form__input:focus {
 
 
 
-  font-size: 1.05rem;
+  font-size: 1.25rem;
 
 
 
   color: rgba(241, 245, 249, 0.92);
-
+  text-align: center;
+  
 
 
 }
@@ -3028,7 +3024,16 @@ textarea.form__input:focus {
 
 }
 
+.auth-visual {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 40px !important;
+}
 
+.auth-visual__content {
+    margin: 0 auto !important;
+}
 
 
 

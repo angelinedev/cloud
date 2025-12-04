@@ -39,8 +39,9 @@ export default function SignupPage() {
       setErrorMessage("Please provide your name so we can personalize the workspace.");
       return;
     }
+    // Note: We keep this client-side check loose (6 chars) so the server can enforce strict rules (8 chars)
     if (formState.password.trim().length < 6) {
-      setErrorMessage("Use a password with at least 6 characters.");
+      setErrorMessage("Use a password with at least 8 characters.");
       return;
     }
 
@@ -53,6 +54,7 @@ export default function SignupPage() {
           runAppTransition("enter", () => navigate("/", { replace: true }));
         },
         onError: (err) => {
+          // This calls the FIXED function below to get the real server message
           const detail = extractErrorMessage(err);
           setErrorMessage(detail);
         },
@@ -162,9 +164,7 @@ export default function SignupPage() {
             <button className="button" type="submit" disabled={signup.isPending}>
               {signup.isPending ? "Creating workspace..." : "Create workspace"}
             </button>
-            {errorMessage ? (
-              <div style={{ color: "#f87171", fontSize: "0.85rem", whiteSpace: "pre-line" }}>{errorMessage}</div>
-            ) : null}
+
           </form>
           <div className="auth-card__footer">
             <span>
@@ -191,15 +191,25 @@ export default function SignupPage() {
   );
 }
 
+// --- FIXED EXTRACTOR FUNCTION ---
 function extractErrorMessage(error) {
-  const detail = error?.body?.detail ?? error?.message ?? "Registration failed";
+  // 1. Try to access the Axios response data where Backend errors live
+  const responseData = error.response?.data;
+  const detail = responseData?.detail;
+
+  // 2. Case A: Standard FastAPI Validation Error (Array of errors)
+  // Example: [{ msg: "ensure this value has at least 8 characters", ... }]
   if (Array.isArray(detail)) {
     return detail
-      .map((item) => item?.msg ?? JSON.stringify(item))
+      .map((item) => item?.msg || JSON.stringify(item))
       .join("\n");
   }
-  if (typeof detail === "object" && detail !== null) {
-    return detail.msg ?? JSON.stringify(detail);
+
+  // 3. Case B: Simple String Error (Manual 400/401/etc)
+  if (typeof detail === "string") {
+    return detail;
   }
-  return detail;
+
+  // 4. Fallback to generic Axios message if the server didn't send a detail
+  return error.message || "Registration failed";
 }

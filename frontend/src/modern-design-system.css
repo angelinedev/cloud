@@ -3059,7 +3059,8 @@ body.app-transition--exit .auth-layout {
   top: 0;
   left: 0;
   height: 100vh;
-  z-index: 100;
+    transform: translateX(-100%);
+  z-index: 1000;
   /* Keep the transition for smooth open/close */
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
 }
@@ -3068,7 +3069,10 @@ body.app-transition--exit .auth-layout {
 .sidebar--hidden {
   transform: translateX(-100%);
 }
-
+  
+    .sidebar--open {
+      transform: translateX(0);
+    }
 .menu-toggle {
   
 width: 40px;
@@ -3149,7 +3153,7 @@ width: 40px;
   }
   
   .sidebar__close {
-    display: flex;
+    display: none;
     width: 36px;
     height: 36px;
     border: none;
@@ -3328,6 +3332,10 @@ width: 40px;
     min-height: 100vh;
     transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
+  /* When sidebar is open, shift the main content */
+.app-shell--sidebar-open .main-area {
+  margin-left: 280px; /* Same as sidebar width */
+}
   
   /* ===========================
      TOPBAR - REDESIGNED
@@ -3843,9 +3851,9 @@ width: 40px;
 
 /* Dashboard Container */
 .dashboard-container {
-  max-width: 1200px;
+  max-width: 100%;
   margin: 0 auto;
-  padding: 0 20px 32px;
+  padding: 0px;
 }
 
 /* Loading & Error States */
@@ -4094,6 +4102,7 @@ width: 40px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-soft);
   transition: border-color var(--transition-base);
+  align-items: center; /* Add this line */
 }
 
 .metric-item:hover {
@@ -4119,7 +4128,7 @@ width: 40px;
   border-radius: 6px;
   font-size: 0.875rem;
   font-weight: 600;
-  align-self: flex-start;
+ 
 }
 
 .metric-badge--success {
@@ -4143,7 +4152,7 @@ width: 40px;
   grid-template-columns: 2fr 1fr;
   gap: 16px;
   margin: 24px 0;
-  align-items: start;
+  align-items: stretch; /* Changed from start to stretch */
 }
 
 @media (max-width: 1024px) {
@@ -4159,7 +4168,9 @@ width: 40px;
   padding: 20px;
   box-shadow: var(--shadow-sm);
   transition: border-color var(--transition-base), box-shadow var(--transition-base);
-  height: fit-content;
+  height: 100%; /* Changed from fit-content to 100% */
+  display: flex; /* Add flex */
+  flex-direction: column; /* Add flex direction */
 }
 
 .chart-card:hover {
@@ -4224,6 +4235,9 @@ width: 40px;
 .chart-content {
   position: relative;
   min-height: 120px;
+  flex: 1; /* Add this to make it take remaining space */
+  display: flex; /* Add flex */
+  align-items: center; /* Center content vertically */
 }
 
 .chart-content--centered {
@@ -4233,7 +4247,6 @@ width: 40px;
   gap: 24px;
   flex-wrap: wrap;
 }
-
 /* Trend Chart */
 .trend-chart-wrapper {
   position: relative;

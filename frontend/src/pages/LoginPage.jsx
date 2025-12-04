@@ -49,9 +49,7 @@ export default function LoginPage() {
     <div className="auth-layout auth-layout--split">
       <section className="auth-panel">
         <div className="auth-brand">
-          <div className="auth-brand-icon">
-            🛡️
-          </div>
+
           <div className="auth-brand-text">
             <strong>Cloud Guard</strong>
             <span>Cloud security posture management platform</span>

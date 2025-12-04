@@ -27,10 +27,12 @@
 .auth-brand-text {
     display: flex;
     flex-direction: column;
+    align-items: center;
+    text-align: center; /* This centers the text content */
 }
 
 .auth-brand-text strong {
-    font-size: 28px;
+    font-size: 30px;
     font-weight: 700;
     color: var(--text-strong);
     margin-bottom: 4px;
@@ -38,7 +40,7 @@
 
 .auth-brand-text span {
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: 18px;
     font-weight: 500;
 }
 
@@ -65,7 +67,7 @@
 
 .auth-card__header p {
     color: var(--text-muted) !important;
-    font-size: 16px !important;
+    font-size: 18px !important;
     line-height: 1.6 !important;
     margin: 12px 0 0 !important;
 }
@@ -92,7 +94,7 @@
 }
 
 .form__label {
-    font-size: 14px !important;
+    font-size: 16px !important;
     font-weight: 600 !important;
     color: var(--text-muted) !important;
     margin-bottom: 8px !important;
@@ -140,7 +142,7 @@
     color: var(--text-link, blue); /* Use your desired link color, defaulting to blue */
     text-decoration: none; /* Optionally remove the underline */
     font-weight: 400; /* Use normal font weight, unless you want it bold */
-    font-size: 14px; /* Adjust font size as needed, using a common link size */
+    font-size: 16px; /* Adjust font size as needed, using a common link size */
 
     /* 4. Ensure it still acts like a clickable element */
     cursor: pointer;
@@ -155,6 +157,9 @@
     text-decoration: underline; 
 }
 
+
+
+
 .input-with-toggle {
     position: relative !important;
     /* Ensure this container uses full width */
@@ -166,7 +171,7 @@
     right: 16px !important;
     top: 50% !important;
     transform: translateY(-50%) !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     background: none !important;
     border: none !important;
     cursor: pointer !important;
@@ -182,14 +187,14 @@
     display: flex !important;
     justify-content: space-between !important;
     align-items: center !important;
-    font-size: 14px !important;
+    font-size: 16px !important;
     color: var(--text-muted) !important;
 }
 
 .auth-card__checkbox {
     display: flex !important;
     align-items: center !important;
-    gap: 8px !important;
+    gap: 10px !important;
     font-weight: 500 !important;
 }
 
@@ -211,9 +216,12 @@
 .auth-panel {
     background: #ffffff !important;
     backdrop-filter: blur(20px) !important;
+    
+
 }
 
 .auth-layout {
+    zoom: 0.83;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 }
 

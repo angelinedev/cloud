@@ -102,22 +102,16 @@ export default function MainLayout() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false); // <--- State for sidebar visibility
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [dismissedNotificationIds, setDismissedNotificationIds] = useState(new Set());
 
   const { data: notifications = [] } = useNotifications();
   const markNotificationRead = useMarkNotificationRead();
   const markAllRead = useMarkAllNotificationsRead();
 
-  // ➡️ Function to toggle sidebar (Open/Close on click)
   const handleSidebarToggle = () => {
     setSidebarOpen((prev) => !prev);
   };
-
-  useEffect(() => {
-    // Closes sidebar when navigating to a new route
-    setSidebarOpen(false);
-  }, [location.pathname]);
 
   useEffect(() => {
     setDismissedNotificationIds((prev) => {
@@ -164,9 +158,6 @@ export default function MainLayout() {
 
   return (
     <div className={`app-shell ${sidebarOpen ? "app-shell--sidebar-open" : ""}`}>
-      {/* The 'sidebar--hidden' and 'sidebar--open' classes are controlled by React state 
-        and handle the sliding transition.
-      */}
       <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : "sidebar--hidden"}`}>
         <div className="sidebar__logo">
           <div className="sidebar__logo-icon">🛡️</div>
@@ -174,7 +165,6 @@ export default function MainLayout() {
             <span className="sidebar__logo-name">SecureCloud</span>
             <span className="sidebar__badge">Enterprise</span>
           </div>
-          {/* Explicit close button inside the sidebar */}
           <button
             type="button"
             className="sidebar__close"
@@ -220,18 +210,14 @@ export default function MainLayout() {
 
       <div className="main-area">
         <header className="topbar">
-          
-          {/* ➡️ CORRECT PLACEMENT: FIRST ELEMENT IN THE HEADER (FAR LEFT) ⬅️ */}
           <button
             type="button"
             className="menu-toggle"
             onClick={handleSidebarToggle} 
             aria-label={sidebarOpen ? "Close navigation" : "Open navigation"}
           >
-            {/* Toggles between the menu icon and the close icon */}
             {sidebarOpen ? closeIcon : menuIcon} 
           </button>
-          {/* -------------------------------------------------------- */}
           
           <div className="topbar__right">
             <div className="notification-container">
