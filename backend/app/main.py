@@ -12,14 +12,17 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
-from datetime import datetime, timedelta
 
 # Imports
 from app.config import settings
 from app.database import Base, SessionLocal, engine
 from app.routers import accounts, auth, dashboard, notifications, policies
-from app import crud, schemas, models
+from app import crud, schemas
 from app.security import PasswordManager
+
+# ============ DEMO SEED IMPORT - REMOVE THIS LINE FOR PRODUCTION ============
+from app.seed import demo_records
+# ============================================================================
 
 app = FastAPI(title=settings.app_name)
 
@@ -57,171 +60,124 @@ app.include_router(api_router)
 def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
 
-def seed_demo_data(db: Session, password_hasher):
+def create_admin_user(db: Session):
+    """Helper to ensure admin exists."""
+    try:
+        admin_email = "admin@cloudguard.dev"
+        from app.models import User
+        user = db.query(User).filter(User.email == admin_email).first()
+        
+        if not user:
+            print(f"Creating admin user: {admin_email}")
+            
+            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+            try:
+                user_in = schemas.UserCreate(
+                    email=admin_email, 
+                    password="changeme123", 
+                    full_name="Cloud Guard Admin"
+                )
+                crud.create_user(db, user_in, pwd_context.hash)
+            except AttributeError:
+                hashed_pw = pwd_context.hash("changeme123")
+                new_user = User(email=admin_email, hashed_password=hashed_pw, full_name="Cloud Guard Admin", is_active=True)
+                db.add(new_user)
+                db.commit()
+            print("✅ Admin user created successfully.")
+        else:
+            print("ℹ️  Admin user already exists.")
+    except Exception as e:
+        print(f"❌ Error creating admin user: {e}")
+
+# ============ DEMO SEED FUNCTION - REMOVE THIS FUNCTION FOR PRODUCTION ============
+def seed_demo_data(db: Session):
     """Seed demo data from seed.py"""
     try:
-        now = datetime.utcnow()
-        user_password = password_hasher("changeme123")
-
-        # Check if data already exists
-        existing_user = db.query(models.User).filter(models.User.email == "admin@cloudguard.dev").first()
-        if existing_user:
-            print("Demo data already seeded.")
+        from app.models import User, CloudAccount, Policy, PolicyEvaluation, Notification
+        
+        # Check if demo data already exists by checking for cloud accounts
+        account_count = db.query(CloudAccount).count()
+        if account_count >= 3:  # We create 3 accounts
+            print("ℹ️  Demo data already seeded.")
             return
-
-        print("Seeding demo data...")
-
-        # Create User
-        user = models.User(
-            email="admin@cloudguard.dev",
-            full_name="Cloud Guard Admin",
-            hashed_password=user_password,
-            is_active=True,
-        )
-        db.add(user)
+        
+        print("🌱 Seeding demo data...")
+        
+        pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+        records = demo_records(password_hasher=pwd_context.hash)
+        
+        # Group records by model type
+        accounts = []
+        policies = []
+        evaluations = []
+        notifications = []
+        
+        for record in records:
+            model = record["model"]
+            data = record["data"]
+            
+            # Skip user creation - admin already exists
+            if model == User:
+                print("ℹ️  Skipping user creation (admin already exists)")
+                continue
+            
+            if model == CloudAccount:
+                accounts.append(data)
+            elif model == Policy:
+                policies.append(data)
+            elif model == PolicyEvaluation:
+                evaluations.append(data)
+            elif model == Notification:
+                notifications.append(data)
+        
+        # Insert in correct order
+        print(f"📦 Creating {len(accounts)} cloud accounts...")
+        created_accounts = []
+        for data in accounts:
+            instance = CloudAccount(**data)
+            db.add(instance)
+            db.flush()  # Get ID immediately
+            created_accounts.append(instance)
         db.commit()
-        db.refresh(user)
-
-        # Create Cloud Accounts
-        accounts_data = [
-            {
-                "provider": models.CloudProvider.AWS,
-                "external_id": "123456789012",
-                "display_name": "AWS Master",
-                "status": models.AccountStatus.CONNECTED,
-                "created_at": now - timedelta(days=30),
-            },
-            {
-                "provider": models.CloudProvider.AZURE,
-                "external_id": "contoso-root",
-                "display_name": "Azure Root",
-                "status": models.AccountStatus.PENDING,
-                "created_at": now - timedelta(days=12),
-            },
-            {
-                "provider": models.CloudProvider.GCP,
-                "external_id": "gcp-org",
-                "display_name": "GCP Organization",
-                "status": models.AccountStatus.ERROR,
-                "created_at": now - timedelta(days=7),
-            },
-        ]
-
-        for account_data in accounts_data:
-            account = models.CloudAccount(**account_data)
-            db.add(account)
+        print(f"✅ Created {len(created_accounts)} cloud accounts")
+        
+        print(f"📋 Creating {len(policies)} policies...")
+        created_policies = []
+        for data in policies:
+            instance = Policy(**data)
+            db.add(instance)
+            db.flush()  # Get ID immediately
+            created_policies.append(instance)
         db.commit()
-
-        # Create Policies
-        policies_data = [
-            {
-                "provider": models.CloudProvider.AWS,
-                "name": "Root MFA Enabled",
-                "control_id": "AWS-SEC-001",
-                "category": "Identity",
-                "severity": models.PolicySeverity.CRITICAL,
-                "description": "Ensure root account has MFA enabled.",
-            },
-            {
-                "provider": models.CloudProvider.AWS,
-                "name": "S3 Public Buckets",
-                "control_id": "AWS-STO-010",
-                "category": "Storage",
-                "severity": models.PolicySeverity.HIGH,
-                "description": "Disallow public S3 buckets.",
-            },
-            {
-                "provider": models.CloudProvider.AZURE,
-                "name": "Secure Score >= 70",
-                "control_id": "AZU-SEC-070",
-                "category": "Governance",
-                "severity": models.PolicySeverity.MEDIUM,
-                "description": "Maintain Azure secure score of at least 70.",
-            },
-            {
-                "provider": models.CloudProvider.GCP,
-                "name": "CIS 1.1 Root Accounts",
-                "control_id": "GCP-CIS-1.1",
-                "category": "Identity",
-                "severity": models.PolicySeverity.HIGH,
-                "description": "Ensure no active root accounts exist.",
-            },
-        ]
-
-        for policy_data in policies_data:
-            policy = models.Policy(**policy_data)
-            db.add(policy)
+        print(f"✅ Created {len(created_policies)} policies")
+        
+        print(f"🔍 Creating {len(evaluations)} policy evaluations...")
+        for data in evaluations:
+            # Use the actual IDs from created records
+            eval_data = data.copy()
+            # The policy_id and account_id in seed data are 1-indexed, but we need actual IDs
+            # Since we just created them in order, the IDs should match
+            instance = PolicyEvaluation(**eval_data)
+            db.add(instance)
         db.commit()
-
-        # Create Policy Evaluations
-        evaluations_data = [
-            {
-                "policy_id": 1,
-                "account_id": 1,
-                "status": models.ComplianceStatus.NON_COMPLIANT,
-                "findings": "Root account missing MFA.",
-                "last_checked_at": now - timedelta(days=1),
-            },
-            {
-                "policy_id": 2,
-                "account_id": 1,
-                "status": models.ComplianceStatus.COMPLIANT,
-                "findings": "All buckets private.",
-                "last_checked_at": now - timedelta(hours=5),
-            },
-            {
-                "policy_id": 3,
-                "account_id": 2,
-                "status": models.ComplianceStatus.UNKNOWN,
-                "findings": "Awaiting latest secure score scan.",
-                "last_checked_at": now - timedelta(days=2),
-            },
-            {
-                "policy_id": 4,
-                "account_id": 3,
-                "status": models.ComplianceStatus.NON_COMPLIANT,
-                "findings": "Root project user detected.",
-                "last_checked_at": now - timedelta(hours=16),
-            },
-        ]
-
-        for eval_data in evaluations_data:
-            evaluation = models.PolicyEvaluation(**eval_data)
-            db.add(evaluation)
+        print(f"✅ Created {len(evaluations)} policy evaluations")
+        
+        print(f"🔔 Creating {len(notifications)} notifications...")
+        for data in notifications:
+            instance = Notification(**data)
+            db.add(instance)
         db.commit()
-
-        # Create Notifications
-        notifications_data = [
-            {
-                "title": "Critical policy violation",
-                "message": "AWS Root MFA Enabled is failing on account 123456789012.",
-                "type": models.NotificationType.POLICY_VIOLATION,
-                "created_at": now - timedelta(hours=2, minutes=15),
-            },
-            {
-                "title": "Azure connector pending",
-                "message": "Azure Root is waiting for admin consent to finalize the sync.",
-                "type": models.NotificationType.ACCOUNT_SYNC,
-                "created_at": now - timedelta(hours=1, minutes=5),
-            },
-            {
-                "title": "New compliance report ready",
-                "message": "Download the latest tri-cloud readiness assessment from the reports area.",
-                "type": models.NotificationType.BUILD_COMPLETE,
-                "created_at": now - timedelta(minutes=25),
-            },
-        ]
-
-        for notif_data in notifications_data:
-            notification = models.Notification(**notif_data)
-            db.add(notification)
-        db.commit()
-
+        print(f"✅ Created {len(notifications)} notifications")
+        
         print("✅ Demo data seeded successfully!")
-
+        
     except Exception as e:
         print(f"❌ Error seeding demo data: {e}")
+        import traceback
+        traceback.print_exc()
         db.rollback()
+# ===================================================================================
 
 @app.on_event("startup")
 def on_startup() -> None:
@@ -229,17 +185,21 @@ def on_startup() -> None:
         try:
             # 1. Create Tables
             Base.metadata.create_all(bind=engine)
-            print("Database tables created.")
+            print("📊 Database tables created.")
 
-            # 2. Seed Demo Data
+            # 2. Create Admin User & Seed Data
             db = SessionLocal()
             try:
-                pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-                seed_demo_data(db, pwd_context.hash)
+                create_admin_user(db)
+                
+                # ============ DEMO SEED - REMOVE THESE 2 LINES FOR PRODUCTION ============
+                seed_demo_data(db)
+                # ==========================================================================
+                
             finally:
                 db.close()
 
         except Exception as e:
-            print(f"Warning: Database initialization error: {e}")
+            print(f"⚠️  Warning: Database initialization error: {e}")
     else:
-        print("Skipping database initialization (Build mode)")
+        print("⏭️  Skipping database initialization (Build mode)")
