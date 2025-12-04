@@ -584,7 +584,7 @@ function CategoryItem({ rank, name, total, compliant, nonCompliant }) {
 
 function ProviderIcon({ provider }) {
   const sources = {
-    aws: "/src/assets/aws.jpg",  // Use absolute path from public
+    aws: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/amazonwebservices/amazonwebservices-original-wordmark.svg",  // Use absolute path from public
     azure: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/azure/azure-original.svg",
     gcp: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/googlecloud/googlecloud-original.svg",
   };
