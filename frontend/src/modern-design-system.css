@@ -104,9 +104,12 @@
 }
 
 html, body {
-  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  height: 100%;
+  overflow-x: hidden;
 }
-
 body {
   margin: 0;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -4677,6 +4680,7 @@ width: 40px;
 
 /* Card */
 .card {
+  margin-top: 16px;
   background: var(--surface-card);
   border: 1px solid var(--border-soft);
   border-radius: var(--radius-md);

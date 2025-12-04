@@ -2404,7 +2404,9 @@ textarea.form__input:focus {
 
 }
 
-
+.auth-layout--reverse {
+  zoom: 0.7;
+}
 
 
 

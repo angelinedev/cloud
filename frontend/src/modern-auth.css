@@ -221,6 +221,7 @@
 }
 
 .auth-layout {
+    
     zoom: 0.83;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
 }
@@ -236,6 +237,7 @@
     .auth-layout,
     .auth-layout--split,
     .auth-layout--reverse {
+        
         grid-template-columns: 1fr;
         grid-template-areas: "panel" "visual";
     }
