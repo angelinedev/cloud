@@ -63,129 +63,147 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="auth-layout auth-layout--split auth-layout--reverse">
-      <section className="auth-panel">
-        <div className="auth-brand">
+    <>
+      <style>{`
+        body, html { 
+          margin: 0; 
+          padding: 0; 
+          overflow-x: hidden; 
+          height: 100%;
+        }
+        #root { 
+          min-height: 100vh;
+          height: 100%;
+        }
+        .auth-layout {
+          min-height: 100vh !important;
+          height: 100% !important;
+        }
+      `}</style>
+      <div className="auth-layout auth-layout--split auth-layout--reverse">
+        <section className="auth-panel">
+          <div className="auth-brand">
 
-          <div className="auth-brand-text">
-            <strong>Cloud Guard</strong>
-            <span>Provision multi-cloud guardrails in minutes</span>
+            <div className="auth-brand-text">
+              <strong>Cloud Guard</strong>
+              <span>Provision multi-cloud guardrails in minutes</span>
+            </div>
           </div>
-        </div>
-        <div className="auth-card">
-          <div className="auth-card__header">
-            <h1>Create your workspace</h1>
-            <p>Invite your security engineers, connect accounts, and launch best-practice guardrails instantly.</p>
-          </div>
-          <form className="form" onSubmit={handleSubmit}>
-            <div
-              className="form__group"
-              style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}
-            >
-              <div>
-                <label className="form__label" htmlFor="first_name">
-                  First name
+          <div className="auth-card">
+            <div className="auth-card__header">
+              <h1>Create your workspace</h1>
+              <p>Invite your security engineers, connect accounts, and launch best-practice guardrails instantly.</p>
+            </div>
+            <form className="form" onSubmit={handleSubmit}>
+              <div
+                className="form__group"
+                style={{ display: "grid", gap: "16px", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))" }}
+              >
+                <div>
+                  <label className="form__label" htmlFor="first_name">
+                    First name
+                  </label>
+                  <input
+                    id="first_name"
+                    className="form__input"
+                    placeholder="Jordan"
+                    value={formState.firstName}
+                    onChange={handleChange("firstName")}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="form__label" htmlFor="last_name">
+                    Last name
+                  </label>
+                  <input
+                    id="last_name"
+                    className="form__input"
+                    placeholder="Rivera"
+                    value={formState.lastName}
+                    onChange={handleChange("lastName")}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="form__group">
+                <label className="form__label" htmlFor="company">
+                  Company
                 </label>
                 <input
-                  id="first_name"
+                  id="company"
                   className="form__input"
-                  placeholder="Jordan"
-                  value={formState.firstName}
-                  onChange={handleChange("firstName")}
-                  required
+                  placeholder="Acme Cloud Security"
+                  value={formState.company}
+                  onChange={handleChange("company")}
                 />
               </div>
-              <div>
-                <label className="form__label" htmlFor="last_name">
-                  Last name
+              <div className="form__group">
+                <label className="form__label" htmlFor="signup_email">
+                  Work email
                 </label>
                 <input
-                  id="last_name"
+                  id="signup_email"
+                  type="email"
                   className="form__input"
-                  placeholder="Rivera"
-                  value={formState.lastName}
-                  onChange={handleChange("lastName")}
+                  placeholder="security.lead@company.com"
+                  value={formState.email}
+                  onChange={handleChange("email")}
                   required
                 />
               </div>
-            </div>
-            <div className="form__group">
-              <label className="form__label" htmlFor="company">
-                Company
-              </label>
-              <input
-                id="company"
-                className="form__input"
-                placeholder="Acme Cloud Security"
-                value={formState.company}
-                onChange={handleChange("company")}
-              />
-            </div>
-            <div className="form__group">
-              <label className="form__label" htmlFor="signup_email">
-                Work email
-              </label>
-              <input
-                id="signup_email"
-                type="email"
-                className="form__input"
-                placeholder="security.lead@company.com"
-                value={formState.email}
-                onChange={handleChange("email")}
-                required
-              />
-            </div>
-            <div className="form__group">
-              <label className="form__label" htmlFor="signup_password">
-                Password
-              </label>
-              <div className="input-with-toggle">
-                <input
-                  id="signup_password"
-                  type={showPassword ? "text" : "password"}
-                  className="form__input"
-                  placeholder="Create a strong password"
-                  value={formState.password}
-                  onChange={handleChange("password")}
-                  required
-                  minLength={8}
-                />
-                <button
-                  type="button"
-                  className="auth-card__link"
-                  onClick={() => setShowPassword((prev) => !prev)}
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
+              <div className="form__group">
+                <label className="form__label" htmlFor="signup_password">
+                  Password
+                </label>
+                <div className="input-with-toggle">
+                  <input
+                    id="signup_password"
+                    type={showPassword ? "text" : "password"}
+                    className="form__input"
+                    placeholder="Create a strong password"
+                    value={formState.password}
+                    onChange={handleChange("password")}
+                    required
+                    minLength={8}
+                  />
+                  <button
+                    type="button"
+                    className="auth-card__link"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                  >
+                    {showPassword ? "Hide" : "Show"}
+                  </button>
+                </div>
               </div>
-            </div>
-            <button className="button" type="submit" disabled={signup.isPending}>
-              {signup.isPending ? "Creating workspace..." : "Create workspace"}
-            </button>
+              <button className="button" type="submit" disabled={signup.isPending}>
+                {signup.isPending ? "Creating workspace..." : "Create workspace"}
+              </button>
 
-          </form>
-          <div className="auth-card__footer">
-            <span>
-              Already onboarded? <Link className="auth-card__link" to="/login">Sign in</Link>
-            </span>
-            <span>By continuing you agree to our security policies and acceptable use standards.</span>
-            <span>Unlimited integrations • Automated evidence capture • Executive-ready analytics</span>
+            </form>
+            <div className="auth-card__footer">
+              <span>
+                Already onboarded? <Link className="auth-card__link" to="/login">Sign in</Link>
+              </span>
+              <span>By continuing you agree to our security policies and acceptable use standards.</span>
+              <span>Unlimited integrations • Automated evidence capture • Executive-ready analytics</span>
+            </div>
           </div>
-        </div>
-      </section>
-      <AuthHero
-        align="left"
-        imageUrl={HERO_IMAGE}
-        eyebrow="Cloud Guard platform"
-        title="Launch secure workspaces in minutes"
-        subtitle="Onboard teams with guided guardrails, policy benchmarks, and automated evidence collection."
-        bullets={[
-          "Multi-cloud policy benchmarks",
-          "Real-time compliance monitoring",
-          "Automated evidence capture",
-        ]}
-      />
-    </div>
+        </section>
+        <AuthHero
+          align="left"
+          imageUrl={HERO_IMAGE}
+          eyebrow="Cloud Guard platform"
+          title="Launch secure workspaces in minutes"
+          subtitle="Onboard teams with guided guardrails, policy benchmarks, and automated evidence collection."
+          bullets={[
+            "Multi-cloud policy benchmarks",
+            "Real-time compliance monitoring",
+            "Automated evidence capture",
+          ]}
+        />
+      </div>
+    </>
   );
 }
 
