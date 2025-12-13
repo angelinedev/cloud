@@ -36,7 +36,9 @@ app = FastAPI(
 )
 
 # CORS - More restrictive for production
-origins = ["*"] if settings.environment == "development" else [
+# FIX: Check if environment attribute exists, default to production if not
+is_development = getattr(settings, 'environment', 'production') == "development"
+origins = ["*"] if is_development else [
     "https://your-frontend-domain.vercel.app",
     "https://cloudguard-gamma.vercel.app"
 ]
