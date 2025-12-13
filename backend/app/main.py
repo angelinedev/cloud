@@ -31,25 +31,67 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.app_name,
-    docs_url="/api/docs",  # Move docs to /api/docs for cleaner URLs
+    docs_url="/api/docs",
     redoc_url="/api/redoc"
 )
 
-# CORS - More restrictive for production
-# FIX: Check if environment attribute exists, default to production if not
+# ============================================================================
+# CORS CONFIGURATION - CRITICAL FOR VERCEL DEPLOYMENT
+# ============================================================================
+# Allow all origins in development, specific origins in production
 is_development = getattr(settings, 'environment', 'production') == "development"
-origins = ["*"] if is_development else [
-    "https://your-frontend-domain.vercel.app",
-    "https://cloudguard-gamma.vercel.app"
+
+# IMPORTANT: For Vercel, we need to be permissive during development/testing
+# Update the allowed origins list once you have your production frontend URL
+allowed_origins = [
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://localhost:5174",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "https://cloudguard-gamma.vercel.app",
+    "https://*.vercel.app",  # Allow all Vercel preview deployments
 ]
+
+# In development, allow everything for easier testing
+if is_development:
+    allowed_origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "Accept",
+        "Origin",
+        "User-Agent",
+        "DNT",
+        "Cache-Control",
+        "X-Requested-With",
+    ],
+    expose_headers=["*"],
+    max_age=3600,  # Cache preflight requests for 1 hour
 )
+
+# Additional CORS handling for OPTIONS requests
+@app.options("/{full_path:path}")
+async def options_handler(request: Request, full_path: str):
+    """Handle OPTIONS requests (CORS preflight)"""
+    return JSONResponse(
+        content={"message": "OK"},
+        headers={
+            "Access-Control-Allow-Origin": request.headers.get("origin", "*"),
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Origin",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Max-Age": "3600",
+        },
+    )
+
+# ============================================================================
 
 # --- DEBUGGING: Log Validation Errors to Vercel Console ---
 @app.exception_handler(RequestValidationError)
