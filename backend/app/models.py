@@ -1,5 +1,5 @@
 from __future__ import annotations
-
+from sqlalchemy.dialects import postgresql
 import enum
 from datetime import datetime
 
@@ -109,7 +109,7 @@ class Policy(Base):
     category: Mapped[str] = mapped_column(String(255), nullable=False)
     severity: Mapped[PolicySeverity] = mapped_column(Enum(PolicySeverity), default=PolicySeverity.MEDIUM)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    policy_content: Mapped[str | None] = mapped_column(Text, nullable=True)
+    policy_content: Mapped[dict | None] = mapped_column(postgresql.JSONB, nullable=True)
     # Extended policy fields
     policy_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
     scope_level: Mapped[str | None] = mapped_column(String(100), nullable=True)
