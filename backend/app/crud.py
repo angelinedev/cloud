@@ -125,7 +125,8 @@ def create_policy(db: Session, policy_in: schemas.PolicyCreate) -> models.Policy
 
 def get_policies(db: Session) -> list[models.Policy]:
     stmt = select(models.Policy).order_by(models.Policy.provider, models.Policy.control_id)
-    return list(db.execute(stmt).scalars())
+    policies = list(db.execute(stmt).scalars())
+    return policies
 
 
 def update_policy(db: Session, policy_id: int, policy_in: schemas.PolicyUpdate) -> Optional[models.Policy]:

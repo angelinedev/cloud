@@ -3461,4 +3461,137 @@ aside[class*="auth-visual"] {
 
 /* --- End CSS Rules --- */
 
+/* Policy Content Viewer Styles */
+.policy-content-viewer {
+  background: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
+.policy-content-viewer pre {
+  margin: 0;
+  padding: 20px;
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  color: #d4d4d4;
+}
+
+.policy-content-viewer code {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  padding: 0;
+}
+
+/* Scrollbar styling for code viewer */
+.policy-content-viewer pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.policy-content-viewer pre::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 4px;
+}
+
+.policy-content-viewer pre::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.policy-content-viewer pre::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Card header button styling for copy button */
+.card__header .button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.card__header .button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.card__header .button--secondary {
+  background: rgba(99, 102, 241, 0.1);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+.card__header .button--secondary:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+/* Alternative light theme for policy viewer (optional) */
+.policy-content-viewer.light-theme {
+  background: #f5f5f5;
+  border-color: #e0e0e0;
+}
+
+.policy-content-viewer.light-theme pre {
+  color: #333;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .policy-content-viewer pre {
+    padding: 16px;
+    font-size: 12px;
+  }
+  
+  .card__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .card__header .button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Enhanced card header layout */
+.card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.card__subtitle {
+  font-size: 14px;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+/* Empty state for missing policy content */
+.policy-content-empty {
+  padding: 40px;
+  text-align: center;
+  color: #9ca3af;
+  background: #f9fafb;
+  border-radius: 8px;
+}
+
+.policy-content-empty svg {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  opacity: 0.5;
+}
+
+.policy-content-empty p {
+  margin: 0;
+  font-size: 14px;
+}
